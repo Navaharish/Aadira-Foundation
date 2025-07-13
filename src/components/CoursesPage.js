@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { ChevronRight, ChevronDown, Monitor, Code, MessageCircle, Clock, Users, Award, Star, BookOpen, Zap, Target } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { ChevronRight, Monitor, Code, MessageCircle, Clock, Users, Award, Star, BookOpen, Zap, Target } from 'lucide-react';
 import Navbar from './Navbar';
 
 const CountingNumber = ({ target, duration = 2000 }) => {
@@ -57,7 +57,7 @@ const CoursesPage = () => {
   const [hoveredCard, setHoveredCard] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
 
-  const coursesData = {
+  const coursesData = useMemo(() => ({
     msoffice: {
       title: "MS Office Courses",
       icon: <Monitor className="w-8 h-8" />,
@@ -463,16 +463,16 @@ const CoursesPage = () => {
         }
       ]
     }
-  };
+  }), []);
 
-  const toggleSection = (section) => {
-    setExpandedSection(expandedSection === section ? null : section);
+  const toggleSection = useCallback((section) => {
+    setExpandedSection(prev => prev === section ? null : section);
     setAnimatedCards(new Set());
-  };
+  }, []);
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => !prev);
+  }, []);
 
   useEffect(() => {
     if (darkMode) {
@@ -486,15 +486,17 @@ const CoursesPage = () => {
     if (expandedSection) {
       const timer = setTimeout(() => {
         const currentSection = coursesData[expandedSection];
-        currentSection.courses.forEach((_, index) => {
-          setTimeout(() => {
-            setAnimatedCards(prev => new Set([...prev, index]));
-          }, index * 100);
-        });
+        if (currentSection) {
+          currentSection.courses.forEach((_, index) => {
+            setTimeout(() => {
+              setAnimatedCards(prev => new Set([...prev, index]));
+            }, index * 100);
+          });
+        }
       }, 300);
       return () => clearTimeout(timer);
     }
-  }, [expandedSection]);
+  }, [expandedSection, coursesData]);
 
   const getColorClasses = (color) => {
     const colors = {

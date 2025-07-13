@@ -1,5 +1,5 @@
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useState, useEffect, useRef, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import { AcademicCapIcon, BriefcaseIcon, CodeBracketIcon, PaintBrushIcon, ArrowRightIcon, ChatBubbleLeftRightIcon, CheckBadgeIcon } from '@heroicons/react/24/solid';
 import Navbar from './Navbar'; // Import the Navbar component
 
@@ -8,7 +8,6 @@ const HomePage = () => {
   const [typedText, setTypedText] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
   const [loopNum, setLoopNum] = useState(0);
-  const [scrolled, setScrolled] = useState(false);
   const typingTimeoutRef = useRef(null);
 
   const textArray = ['Training', 'Communication', 'Placement Support'];
@@ -69,31 +68,42 @@ const HomePage = () => {
       const i = loopNum % textArray.length;
       const fullText = textArray[i];
       
-      setTypedText(isDeleting
-        ? fullText.substring(0, typedText.length - 1)
-        : fullText.substring(0, typedText.length + 1)
-      );
+      setTypedText(prev => {
+        if (isDeleting) {
+          return fullText.substring(0, prev.length - 1);
+        } else {
+          return fullText.substring(0, prev.length + 1);
+        }
+      });
 
       if (!isDeleting && typedText === fullText) {
         typingTimeoutRef.current = setTimeout(() => setIsDeleting(true), newTextDelay);
       } else if (isDeleting && typedText === '') {
         setIsDeleting(false);
-        setLoopNum(loopNum + 1);
+        setLoopNum(prev => prev + 1);
       }
     };
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
 
     typingTimeoutRef.current = setTimeout(
       handleTyping,
       isDeleting ? erasingDelay : typingDelay
     );
 
-    return () => clearTimeout(typingTimeoutRef.current);
-  }, [typedText, isDeleting, loopNum]);
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+    };
+  }, [typedText, isDeleting, loopNum, textArray, newTextDelay, typingDelay, erasingDelay]);
 
   // Toggle dark mode
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => !prev);
+  }, []);
 
   useEffect(() => {
     // Apply dark mode class to body
@@ -105,7 +115,7 @@ const HomePage = () => {
     
     // Scroll effect
     const handleScroll = () => {
-      setScrolled(window.scrollY > 10);
+      // setScrolled(window.scrollY > 10); // This line was removed as per the edit hint
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -133,22 +143,22 @@ const HomePage = () => {
                 <span className="ml-1 animate-pulse">|</span>
               </div>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <motion.a
-                  href="#courses"
+                <motion.button
+                  onClick={() => document.getElementById('courses')?.scrollIntoView({ behavior: 'smooth' })}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-8 py-3 bg-blue-600 dark:bg-blue-700 text-white font-medium rounded-lg shadow-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
                 >
                   Explore Courses
-                </motion.a>
-                <motion.a
-                  href="#contact"
+                </motion.button>
+                <motion.button
+                  onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                   className="px-8 py-3 bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 font-medium rounded-lg shadow-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                 >
                   Contact Us
-                </motion.a>
+                </motion.button>
               </div>
             </motion.div>
           </div>
@@ -195,12 +205,12 @@ const HomePage = () => {
                       ))}
                     </ul>
                     <div className="mt-6 text-center">
-                      <a 
-                        href="#contact" 
+                      <button 
+                        onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
                         className="inline-flex items-center text-blue-600 dark:text-blue-400 font-medium hover:text-blue-800 dark:hover:text-blue-300 transition-colors"
                       >
                         View More <ArrowRightIcon className="w-4 h-4 ml-1" />
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </motion.div>

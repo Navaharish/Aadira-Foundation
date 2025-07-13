@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Navbar from './Navbar';
 
 const AboutPage = () => {
@@ -6,6 +6,7 @@ const AboutPage = () => {
   const [collegeCount, setCollegeCount] = useState(0);
   const [studentCount, setStudentCount] = useState(0);
   const [darkMode, setDarkMode] = useState(false);
+  const [showBackToTop, setShowBackToTop] = useState(false);
 
   useEffect(() => {
     const observerOptions = {
@@ -35,6 +36,16 @@ const AboutPage = () => {
     return () => observer.disconnect();
   }, []);
 
+  // Scroll handler for back to top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300);
+    };
+    
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const animateCount = (setter, target, duration) => {
     let start = 0;
     const increment = target / (duration / 16);
@@ -49,9 +60,16 @@ const AboutPage = () => {
     }, 16);
   };
 
-  const toggleDarkMode = () => {
-    setDarkMode(!darkMode);
-  };
+  const toggleDarkMode = useCallback(() => {
+    setDarkMode(prev => !prev);
+  }, []);
+
+  const scrollToTop = useCallback(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  }, []);
 
   useEffect(() => {
     if (darkMode) {
@@ -243,13 +261,19 @@ const AboutPage = () => {
         </section>
 
         {/* Back to Top Button */}
-        <div className="fixed bottom-8 right-8 z-40">
-          <div className="bg-blue-600 dark:bg-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 cursor-pointer animate-bounce">
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-            </svg>
+        {showBackToTop && (
+          <div className="fixed bottom-8 right-8 z-40">
+            <button 
+              onClick={scrollToTop}
+              className="bg-blue-600 dark:bg-blue-500 text-white p-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 cursor-pointer animate-bounce"
+              aria-label="Back to top"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+              </svg>
+            </button>
           </div>
-        </div>
+        )}
       </main>
 
       {/* Particle Effects */}

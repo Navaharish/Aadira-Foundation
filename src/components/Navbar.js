@@ -1,5 +1,5 @@
 // Navbar.js
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import { SunIcon, MoonIcon } from '@heroicons/react/24/solid';
@@ -14,7 +14,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
     { name: 'Home', href: '/', bgColor: 'bg-blue-200 dark:bg-blue-900' },
     { name: 'About Us', href: '/about', bgColor: 'bg-blue-200 dark:bg-blue-900' },
     { name: 'Courses', href: '/courses', bgColor: 'bg-blue-200 dark:bg-blue-900' },
-    { name: 'Contact', href: '#contact', bgColor: 'bg-blue-200 dark:bg-blue-900' },
+    { name: 'Contact', href: '/contact', bgColor: 'bg-blue-200 dark:bg-blue-900' },
   ];
 
   useEffect(() => {
@@ -24,6 +24,18 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (isMenuOpen && !event.target.closest('.mobile-menu')) {
+        setIsMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isMenuOpen]);
 
   return (
     <header className={`fixed w-full z-50 transition-all duration-300 ${
@@ -39,12 +51,14 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             transition={{ duration: 0.5 }}
             className="text-2xl font-bold text-blue-600 dark:text-blue-400"
           >
-            Aadhira
+            <Link to="/" aria-label="Go to homepage">
+              Aadhira
+            </Link>
           </motion.div>
 
           <div className="flex items-center space-x-6">
             {/* Desktop Navigation */}
-            <nav className="hidden md:flex items-center space-x-1">
+            <nav className="hidden md:flex items-center space-x-1" role="navigation" aria-label="Main navigation">
               {navItems.map((item) => (
                 <motion.div
                   key={item.name}
@@ -63,6 +77,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                     } ${
                       activeNavItem === item.name ? item.bgColor : ''
                     }`}
+                    aria-current={window.location.pathname === item.href ? 'page' : undefined}
                   >
                     {item.name}
                   </Link>
@@ -102,8 +117,10 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
             {/* Mobile Menu Button */}
             <button 
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="md:hidden text-gray-700 dark:text-gray-300 focus:outline-none"
+              className="md:hidden text-gray-700 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md p-1"
               aria-label="Toggle menu"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-menu"
             >
               {isMenuOpen ? (
                 <XMarkIcon className="h-6 w-6" />
@@ -119,13 +136,16 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
       <AnimatePresence>
         {isMenuOpen && (
           <motion.div
+            id="mobile-menu"
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
             transition={{ duration: 0.3 }}
-            className={`md:hidden overflow-hidden ${
+            className={`md:hidden overflow-hidden mobile-menu ${
               darkMode ? 'bg-gray-800' : 'bg-white'
             }`}
+            role="navigation"
+            aria-label="Mobile navigation"
           >
             <div className="px-4 pt-2 pb-4 space-y-2">
               {navItems.map((item) => (
@@ -138,6 +158,7 @@ const Navbar = ({ darkMode, toggleDarkMode }) => {
                       : 'text-gray-700 hover:bg-blue-50'
                   }`}
                   onClick={() => setIsMenuOpen(false)}
+                  aria-current={window.location.pathname === item.href ? 'page' : undefined}
                 >
                   {item.name}
                 </Link>
